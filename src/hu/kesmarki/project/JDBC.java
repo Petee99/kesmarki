@@ -1,5 +1,6 @@
 package hu.kesmarki.project;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -8,12 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class JDBC {
 	
-	private static String url = "jdbc:sqlserver://localhost;databaseName=kesmarki";
-	private static String user = "sa";
-	private static String password = "FingerBoard101499";	
 	private static Connection conn = null;
 	
 	public List<String> query(String query, int columnNum){
@@ -36,7 +35,7 @@ public class JDBC {
 					if(isMeta) {
 						resultRow += rsmd.getColumnName(cIndex)+":"+rsmd.getColumnTypeName(cIndex);
 					} else {
-						resultRow += result.getString(cIndex);
+						resultRow += result.getString(cIndex); 
 					}
 					
 					for (int bIndex = 0; bIndex < breakPoints.length; bIndex++) {
@@ -75,8 +74,13 @@ public class JDBC {
 	}
 	
 	private static void connect(){
-		try {
-			conn = DriverManager.getConnection(url, user, password);
+		try {			
+			Properties prop = new Properties();
+			prop.load(JDBC.class.getClassLoader().getResourceAsStream("dbConfig.properties"));
+		    conn = DriverManager.getConnection(prop.getProperty("url"), prop.getProperty("user"), prop.getProperty("password"));
+		}
+		catch (IOException ex) {
+		    ex.printStackTrace();
 		}
 		catch (SQLException e) {
 			System.out.println(">> Can't connect to database <<");

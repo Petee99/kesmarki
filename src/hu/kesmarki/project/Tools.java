@@ -6,6 +6,8 @@ import java.util.Scanner;
 
 public class Tools {
 	
+	private static String[] illegalChars = {";", "<", ">" , ":"};
+	
 	private static Scanner scanner = new Scanner(System.in);
 	
 	public static List<String> readData(String properties[], boolean needId) {
@@ -46,6 +48,8 @@ public class Tools {
 					float max = Float.parseFloat(constraints.split(";")[1].substring(0, 
 							constraints.split(";")[1].length()-1));
 					isCorrect = checkLimits(Float.parseFloat(input), min, max);
+				} else if (hasIllegalChars(input)) {
+					isCorrect = false;
 				}
 			}
 		} while (!isCorrect);
@@ -115,5 +119,16 @@ public class Tools {
 					+ " and " + (int)maxInc + ". Please try again!");
 			return false;
 		}
+	}
+	
+	private static boolean hasIllegalChars (String input) {
+		for (String illegalChar : illegalChars) {
+			if(input.contains(illegalChar)) {
+				System.out.println(illegalChar + " is not an allowed character, please try again! "
+						+ "(Illegal characters are: : ; < > )");
+				return true;
+			}
+		}
+		return false;
 	}
 }

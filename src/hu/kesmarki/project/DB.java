@@ -84,7 +84,7 @@ public class DB {
 		
 		if(option>1) {
 			System.out.println("Please provide the ID of the entity you want to add to!");
-			id = checkId(option, people);
+			id = checkId(option-1, people);
 			parentId += id + ",";
 		} else {
 			id = 0;
@@ -258,7 +258,6 @@ public class DB {
 		int id = returnList.get(returnList.size()-1)+1;
 		
 		for(int index = 0; index < returnList.size(); index++) {
-			System.out.println(returnList.get(index));
 			if (index != returnList.size()-1 && returnList.get(index+1)-returnList.get(index)>1) {
 				id = returnList.get(index)+1;
 			}
