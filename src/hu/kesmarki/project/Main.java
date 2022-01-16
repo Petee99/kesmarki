@@ -39,6 +39,10 @@ public class Main {
 	}
 	
 	private static void printAllPeople(List<Person> people) {
+		if(people.size() < 1) {
+			System.out.println("DB: There are no records in the database.");
+		}
+		
 		for (int dIndex = 0; dIndex < people.size(); dIndex++) {
 			System.out.println(people.get(dIndex).getAllData());
 		}

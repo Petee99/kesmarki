@@ -26,6 +26,10 @@ public class Person {
 		
 	}
 	
+	public Person(String person) {
+		this(person, "null", "null");
+	}
+	
 	public List<Address> getAddresses() {
 		return addresses;
 	}

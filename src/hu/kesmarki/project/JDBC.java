@@ -29,7 +29,7 @@ public class JDBC {
 			ResultSet result = statement.executeQuery(query);
 			ResultSetMetaData rsmd = result.getMetaData();
 			
-			while(result.next()) {
+			while(result.next() || isMeta) {
 				String resultRow = "";
 				for (int cIndex = 1; cIndex <= columnNum; cIndex++) {
 					
@@ -49,11 +49,12 @@ public class JDBC {
 					}
 				}
 				returnList.add(resultRow);
+				isMeta = false;
 			}
 			
 			disconnect();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			error(e);
 		}
 		return(returnList);
 	}
@@ -68,7 +69,7 @@ public class JDBC {
 				disconnect();
 				return true;
 			} catch (SQLException e) {
-				e.printStackTrace();
+				error(e);
 				return false;
 			}
 	}
@@ -78,7 +79,9 @@ public class JDBC {
 			conn = DriverManager.getConnection(url, user, password);
 		}
 		catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println(">> Can't connect to database <<");
+			error(e);
+			System.exit(0);
 		}
 	}
 	
@@ -87,8 +90,19 @@ public class JDBC {
 	        if (conn != null) {
 	            conn.close();
 	        }
-	      } catch (SQLException ex) {
-	          System.out.println(ex.getMessage());
+	      } catch (SQLException e) {
+	          error(e);
 	      }
+	}
+	
+	private static void error(SQLException error) {
+		System.out.println("(x) Database error:\n"
+				+ "-> Check if database is offline\n"
+				+ "-> Check if credentials are wrong\n"
+				+ "-> Check if there's a syntax error\n"
+				+ "-> For more information type: details");
+		if(Tools.askInput("String", "").equals("details")) {
+			error.printStackTrace();
+		}
 	}
 }

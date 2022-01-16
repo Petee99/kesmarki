@@ -1,8 +1,11 @@
 package hu.kesmarki.project;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import hu.kesmarki.project.models.Person;
 
 public class DB {
@@ -18,13 +21,16 @@ public class DB {
 	private static int selectBreakPoints[] = {5, 11};
 	private static String dataProps = jdbcEntity.query(true, select, 14, selectBreakPoints).get(0);
 	private static String tables[] = {"people", "addresses", "contacts"};
-	private static String objects[] = {"person", "address", "contact"};
-	
 	
 	public List<Person> getData() {
 			
 		List<String> returnList = jdbcEntity.query(false, select, 14, selectBreakPoints);
 		List<Person> people = new ArrayList<Person>();
+		
+		if(returnList.size()<1) {
+			System.out.println("DATABASE: There are no records in the database.\n");
+			return people;
+		}
 		
 		String currentRow[];
 		boolean persExists;
@@ -65,51 +71,83 @@ public class DB {
 				people.add(new Person(currentRow[0],currentRow[1],currentRow[2]));
 			}
 		}
+		
 		return people;
 	}
 	
 	public List<Person> addData(List<Person> people) {
 		
 		int option = Tools.choose("add");
-		String objectId = "";
+				
+		int id;
+		String parentId = "";
 		
 		if(option>1) {
-			System.out.println("Please provide the ID of which " + objects[option-2] 
-					+ " you want to add this " + objects[option-1] + " to!");
-			objectId = Tools.askInput("int", "") + ",";	
+			System.out.println("Please provide the ID of the entity you want to add to!");
+			id = checkId(option, people);
+			parentId += id + ",";
+		} else {
+			id = 0;
 		}
-		
 		
 		String propArray[] = dataProps.split(";");
 		boolean needId = false;
+		int newId = generateId(option, people);
 		
 		String insertString = "INSERT INTO "+tables[option-1]
-				+ " VALUES ("+generateId(tables[option-1]) + "," + objectId ;
-		
+				+ " VALUES ("+ newId + "," + parentId ;
 		List <String> newData = Tools.readData(propArray[option-1].split("<>"), needId);
 		
 		for(int ndIndex = 0; ndIndex < newData.size(); ndIndex++) {
-			
 			if (ndIndex != newData.size()-1) {
 				insertString += newData.get(ndIndex) + ", ";
 			}
 			else {
 				insertString += newData.get(ndIndex) + ")";
 			}
+			newData.set(ndIndex, Tools.removeApostrophes(newData.get(ndIndex)));
 		}
 		
-		jdbcEntity.update(insertString);
+		if (jdbcEntity.update(insertString)) {
+			switch (option) {
+			case 1:
+				people.add(new Person(newId + "<>" 
+						+ newData.stream()
+						.collect(Collectors.joining("<>"))));
+				break;
+			case 2:
+				people.stream().filter(person -> person.getId() == id)
+				.findFirst().orElse(null).addAddress(newId + "<>" 
+						+ newData.stream()
+						.collect(Collectors.joining("<>")), "null");
+				break;
+			case 3:
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.filter(address -> address.getId() == id)
+				.findFirst()
+				.orElse(null).addContact(newId + "<>" 
+						+ newData.stream()
+						.collect(Collectors.joining("<>")));
+				break;
+			default:
+				break;
+			}
+		}
 		
-		return getData();
+		Collections.sort(people, Comparator.comparingInt(Person ::getId));
+		return people;
 	}
 	
 	public List<Person> modifyData(List<Person> people) {
 		int option = Tools.choose("modify");
 		
-		System.out.println("Please provide the ID of the chosen record!");
-		int id = Integer.parseInt(Tools.askInput("int", ""));
+		if (noRecords(option, people)) {
+			return people;
+		}
 		
-		System.out.println(people.stream().filter(person -> id==person.getId()).findFirst().orElse(null));
+		System.out.println("Please provide the ID of the chosen record!");
+		int id = checkId(option, people);
 		
 		String propArray[] = dataProps.split(";");
 		List <String> newData = Tools.readData(propArray[option-1].split("<>"), false);
@@ -128,47 +166,148 @@ public class DB {
 				updateString += " WHERE " + properties[0].split(":")[0] 
 						+ " = " + id;
 			}
+			newData.set(ndIndex, Tools.removeApostrophes(newData.get(ndIndex)));
 		}
 		
-		jdbcEntity.update(updateString);		
-		return getData();
+		if (jdbcEntity.update(updateString)) {
+			switch (option) {
+			case 1:
+				people.stream().filter(person -> person.getId() == id)
+				.findFirst().orElse(null).setData(newData);
+				break;
+			case 2:
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.filter(address -> address.getId() == id)
+				.findFirst()
+				.orElse(null).setData(newData);
+				break;
+			case 3:
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.flatMap(address -> address.getContacts().stream())
+				.filter(contact -> contact.getId() == id)
+				.findFirst()
+				.orElse(null).setData(newData);
+				break;
+			default:
+				break;
+			}
+		}
+		return people;
 	}	
 	
 	public List<Person> deleteData(List<Person> people) {
 		
 		int option = Tools.choose("delete");
+		
+		if (noRecords(option, people)) {
+			return people;
+		}
+		
 		System.out.println("Please provide the ID of the chosen record!");
-		int id = Integer.parseInt(Tools.askInput("int", ""));
-
+		int id = checkId(option, people);
+			
 		String propArray[] = dataProps.split(";");
 		String deleteString = "DELETE FROM "
 				+ tables[option-1] + " WHERE "
 				+ propArray[option-1].split(":")[0] +"=" + id; 
 		
-		jdbcEntity.update(deleteString);
-		return getData();
+		if (jdbcEntity.update(deleteString)) {
+			switch (option) {
+			case 1:
+				people.removeIf(person -> person.getId() == id);
+				break;
+			case 2:
+				people.forEach(person -> person.getAddresses()
+						.removeIf(address -> address.getId() == id));
+				break;
+			case 3:
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.forEach(address -> address.getContacts()
+				.removeIf(contact -> contact.getId() == id));
+				break;
+			default:
+				break;
+			}
+		}
+		return people;
 	}
 	
-	
-	private static int generateId(String table) {
-		String queryString = "SELECT * FROM " + table;
-		List<String> returnList = jdbcEntity.query(queryString, 1);
-		int ids[] = new int[returnList.size()];
+	private static int checkId(int option, List<Person> people) {
+		List<Integer> validIds = getIds(option, people);
 		
-		for (int lIndex = 0; lIndex < returnList.size(); lIndex++) {
-			ids[lIndex] = Integer.parseInt(returnList.get(lIndex));
+		int id = Integer.parseInt(Tools.askInput("int", ""));	
+		
+		while (!validIds.contains(id)) {
+			System.out.println("Please select a valid ID!");
+			id = Integer.parseInt(Tools.askInput("int", ""));
 		}
 		
-		Arrays.sort(ids);
-		int id = ids[ids.length-1]+1;
+		return id;
+	}
+	
+	private static int generateId(int option, List<Person> people) {
+		List<Integer>returnList = getIds(option, people);
 		
-		for(int index = 0; index < ids.length; index++) {
-
-			if (index != ids.length-1 && ids[index+1]-ids[index]>1) {
-				id = ids[index+1]-1;
+		if( returnList.size()<1 ) {
+			return 1;
+		}
+		
+		int id = returnList.get(returnList.size()-1)+1;
+		
+		for(int index = 0; index < returnList.size(); index++) {
+			System.out.println(returnList.get(index));
+			if (index != returnList.size()-1 && returnList.get(index+1)-returnList.get(index)>1) {
+				id = returnList.get(index)+1;
 			}
 		}
 		
 		return id;
 	}
+	
+	private static List<Integer> getIds(int option, List<Person> people) {
+		List<Integer> returnList = new ArrayList<Integer>();
+				
+		switch (option) {
+		case 1:
+			returnList = 
+				people.stream()
+	              .map(person -> person.getId())
+	              .collect(Collectors.toList());
+			break;
+		case 2:
+			returnList =
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.map(address -> address.getId())
+				.collect(Collectors.toList());
+			break;
+		case 3:
+			returnList =
+				people.stream()
+				.flatMap(person -> person.getAddresses().stream())
+				.flatMap(address-> address.getContacts().stream())
+				.map(contact -> contact.getId())
+				.collect(Collectors.toList());
+			break;
+		default:
+			break;
+		}
+		
+		Collections.sort(returnList);
+		return returnList;
+	}
+	
+	private static boolean noRecords(int option, List<Person> people) {
+		if (getIds(option, people).size()<1) {
+			System.out.println("DB: There're no records of the selected type.");
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 }

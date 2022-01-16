@@ -1,0 +1,27 @@
+INSERT INTO people VALUES
+(1, 'Peter', 'Mako', 22, 'Male'),
+(2, 'Chandler', 'Bing', 26, 'Male'),
+(3, 'Joey', 'Tribbiani', 25, 'Male'),
+(4, 'Ross', 'Geller', 26, 'Male'),
+(5, 'Rachel', 'Green', 24, 'Female'),
+(6, 'Monica', 'Geller', 24, 'Female'),
+(7, 'Phoebe', 'Buffay', 26, 'Female')
+
+INSERT INTO addresses VALUES
+(1, 1, 60, 'Arany Janos utca', 'Szirmabesenyo', 'Hungary', 3711),
+(2, 1, 46, 'Arpad Ut', 'Miskolc', 'Hungary', 3535),
+(3, 2, 947, 'Pennington Drive', 'Auburn, NY', 'United States', 13021),
+(4, 3, 613, 'South Canterbury Drive', 'Brooklyn, NY', 'United States', 11221),
+(5, 4, 9320, 'Peg Shop Ave.', 'Lindenhurst, NY', 'United States', 11757),
+(6, 7, 9124, 'Peg Shop Ave.', 'Lindenhurst, NY', 'United States', 11757),
+(7, 5, 90, 'Bedford St.', 'New York, NY', 'United States', 10014),
+(8, 6, 90, 'Bedford St.', 'New York, NY', 'United States', 10014)
+
+INSERT INTO contacts VALUES
+(1, 1, '+3646262765', 24),
+(2, 2, '+3646407833', 46),
+(3, 3, '+18710797911', 71),
+(4, 3, '+16916533633', 1),
+(5, 4, '+14437588333', 35),
+(6, 5, '+13981152547', 67),
+(7, 6, '+17532094677', 20)

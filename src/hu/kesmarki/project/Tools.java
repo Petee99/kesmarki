@@ -30,19 +30,9 @@ public class Tools {
 		return returnList;
 	}
 	
-	public static boolean checkLimits(float num, float minInc, float maxInc) {
-		if(num >= minInc && num <= maxInc) {
-			return true;
-		}
-		else {
-			System.out.println("The number should be between " + (int)minInc 
-					+ " and " + (int)maxInc + ". Please try again!");
-			return false;
-		}
-	}
-	
-	// Number constraint form: [x;y] string form: excluded_char1; ...
 	public static String askInput(String type, String constraints) {
+		// Number constraint form: [x;y]
+		
 		String input;
 		boolean isCorrect = false; 
 		
@@ -66,8 +56,33 @@ public class Tools {
 		
 		return input;
 	}
+
+	public static void welcome() {
+		System.out.println("Welcome! This console app uses the keywords listed below:\n"
+				+ ">> list - lists all peopledata,\n"
+				+ ">> add - adds peopledata,\n"
+				+ ">> delete - deletes peopledata,\n"
+				+ ">> modify - modifies peopledata,\n"
+				+ ">> exit - exits the program.");
+	}
 	
-	public static boolean validateInput(String input, String inType) {
+	public static int choose(String action) {
+		System.out.println("\nDo you want to "+ action +" a person (1),"
+				+ " OR an address (2)"
+				+ " OR a contact (3)?");
+		return Integer.parseInt(Tools.askInput("int", "[1;3]"));
+	}
+	
+	public static String removeApostrophes(String str) {
+		if (str.charAt(0) == '\'' &&  str.charAt(str.length()-1) == '\'') {
+			return str.substring(1, str.length()-1);
+		}
+		else {
+			return str;
+		}
+	}
+	
+	private static boolean validateInput(String input, String inType) {
 		boolean isCorrect;
 		
 		switch (inType) {
@@ -91,19 +106,14 @@ public class Tools {
 		return isCorrect;
 	}
 	
-	public static void welcome() {
-		System.out.println("Welcome! This console app uses the keywords listed below:\n"
-				+ ">> list - lists all peopledata,\n"
-				+ ">> add - adds peopledata,\n"
-				+ ">> delete - deletes peopledata,\n"
-				+ ">> modify - modifies peopledata,\n"
-				+ ">> exit - exits the program.");
-	}
-	
-	public static int choose(String action) {
-		System.out.println("\nDo you want to "+ action +" a person (1),"
-				+ " OR an address (2)"
-				+ " OR a contact (3)?");
-		return Integer.parseInt(Tools.askInput("int", "[1;3]"));
+	private static boolean checkLimits(float num, float minInc, float maxInc) {
+		if(num >= minInc && num <= maxInc) {
+			return true;
+		}
+		else {
+			System.out.println("The number should be between " + (int)minInc 
+					+ " and " + (int)maxInc + ". Please try again!");
+			return false;
+		}
 	}
 }
